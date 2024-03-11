@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>Todo List</title>
+        <style>
+            body{
+                font-family: "Arial", sans-serif;
+                background-color: rgb(241, 241, 241);
+            }
+            .container{
+                max-width:650px;
+                margin:auto;
+                padding: 2px 20px 20px 20px;
+                background-color: rgb(127, 216, 246);
+                border-radius: 10px;
+            }
+            .container .o{
+                width:90%;
+                margin: 10px 10px;
+                border-radius: 5px;
+            }
+            .container .p{
+                width:30%;
+                margin: 10px 0px;
+            }
+            .tab{
+                max-width:650px;
+                margin:auto;
+                padding: 2px 20px 20px 20px;
+                background-color: rgb(127, 133, 246);
+                border-radius: 10px;
+            }
+            .tab table{
+                margin-top: 10px;
+                border-collapse: collapse;
+                
+            }
+            .tab th{
+                padding: 5px 45px;
+                border: solid black;
+                background-color: rgb(210, 255, 255);
+            }
+            td{
+                padding: 5px;
+                border: 1px solid black;
+                text-align: center;
+            }
+            button{
+                background-color: rgb(215, 213, 252);
+                font-weight: bold;
+            }
+            button:hover{
+                background-color: rgb(131, 77, 185);
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <h1 style="text-align: center;">Todo List</h1>
+     
+            <input type="text" class="o" id="title" placeholder="Title"/><br>
+            <input type="text" class="o" id="description" placeholder="Description"/><br>
+            <label for="date" >Date: - </label>
+            <input type="date" class="p" id="date" />
+            <label for="time" >Time: </label>
+            <input type="time" class="p" id="time" /><br>
+            <button class="o"  onclick="scheduleTimer()">Schedule timer</button>
+
+       
+       
+    </div><br>
+    <div class="tab">
+        <table border="1">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Dscription</th>
+                <th>Date&Time</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="reminderTableBody"></tbody>
+        </table>
+    </div>
+    <script>
+        if("Notification" in window){
+            Notification.requestPermission().then(function(permission){
+                if(Notification.permission !== "granted"){
+                    alert("Allow the notification bhai");
+                    location.reload();
+                }
+            })
+        }
+
+        var timeoutIds = [];
+
+        function scheduleTimer(){
+            var title = document.getElementById("title").value;
+            var description = document.getElementById("description").value;
+            var date = document.getElementById("date").value;
+            var time = document.getElementById("time").value;
+            
+
+            var dateTimeString = date+" "+time;
+            var scheduleTime = new Date(dateTimeString);
+            var currentTime = new Date();
+            var timeDifference = scheduleTime - currentTime;
+            
+            if(timeDifference > 0){
+                addReminder(title,description,dateTimeString);
+
+                var timeoutId = setTimeout(function () {
+                    var notification = new Notification(title,{
+                        body:description,
+                        requireInteraction: true,
+                    });
+                }, timeDifference);
+
+                timeoutIds.push(timeoutId);
+
+            }
+            else{
+                alert("You cant schedule your past");
+            }
+        }
+
+        function addReminder(title,description, dateTimeString){
+            var tableBody = document.getElementById("reminderTableBody");
+
+            var row = tableBody.insertRow();
+
+            var titleCell = row.insertCell(0);
+            var descriptionCell = row.insertCell(1);
+            var dateTimeCell = row.insertCell(2);
+            var actionCell = row.insertCell(3);
+
+            titleCell.innerHTML = title;
+            descriptionCell.innerHTML = description;
+            dateTimeCell.innerHTML = dateTimeString;
+            actionCell.innerHTML = '<button onClick="deleteReminder(this);">Delete</button>';
+
+        }
+        function deleteReminder(button){
+            var row = button.closest("tr");
+            var index = row.rowIndex;
+
+            clearTimeout(timeoutIds[index - 1]);
+            timeoutIds.splice(index - 1, 1);
+
+            row.remove();
+
+        }
+    </script>
+</body>
+</html>
